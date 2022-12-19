@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<head>
+
+    <script src="js/aframe.min.js"></script>
+    <script src="js/arframe-ar.js"></script>
+    <script src="js/aframe-extras.loaders.min.js"></script>
+    <script src="./constants.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" >
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="./css/theme.css">
+    <link rel="stylesheet" href="./css/main.css">
+
+    <meta name="description" content="Restaurant AR (author: mstale007)">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no," />
+
+
+    <script>
+        var devSignatureStyle = 
+        "font-size: 14px;" +
+        "background: #67b26f; /* fallback for old browsers */" + 
+        "background: -webkit-linear-gradient(to right, red, orange); /* Chrome 10-25, Safari 5.1-6 */" +
+        "background: linear-gradient(to right, red, orange); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */" +
+        "color: white;" +
+        "text-align: center;" +
+        "padding: 10px 15px;" +
+        "width: 100%;" +
+        "border-radius: 20px;";
+
+
+        var devSignature = "%c👋 Made with 👨🏻‍💻 by : https://github.com/mstale007";
+        var cart={}
+        var tableName="";
+
+        function updateMenuUI(){
+            document.body.style.setProperty("--primaryColor", primaryColor);
+            document.body.style.setProperty("--secondaryColor", secondaryColor);
+            document.body.style.setProperty("--primaryTextColor", primaryTextColor);
+            document.body.style.setProperty("--secondaryTextColor", secondaryTextColor);
+            document.body.style.setProperty("--quantityButtonColor", quantityButtonColor);
+
+            document.getElementById('nav-header-img-id').src=logo_image_link;
+        }
+
+        function getCookie(cname) {
+            let name = cname + "=";
+            let decodedCookie = decodeURIComponent(document.cookie);
+            let ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        function setCookie(cname, cvalue, exdays) {
+            const d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            let expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+
+        window.onload = function() {
+            //Loading Menu UI
+            // fetch(backend_link+'/home')
+            // .then(response => response.json())
+            // .then(resp_data => {
+
+            //     info = resp_data['info'];
+            //     theme_info = info['theme'];
+
+            //     logo_image_link=info['image_url'];
+            //     primaryColor=theme_info['primary_color'];
+            //     secondaryColor=theme_info['secondary_color'];
+            //     primaryTextColor=theme_info['primary_text_color'];
+            //     secondaryTextColor=theme_info['secondary_text_color'];
+            //     quantityButtonColor=theme_info['quantity_button_color']
+
+                updateMenuUI();
+
+                // data=resp_data;
+                // data=resp_data['menu'];
+
+                for (const group in data) {
+                    if (Object.hasOwnProperty.call(data, group)) {
+                        const menu_elements = data[group];
+                        document.getElementById('menu-list-id').appendChild(getAccordionGroupItem(group));
+                    }
+                }
+
+                //Accordion and Panels
+                var ar_view_info_height=parseInt(document.getElementById("ar-view-info").offsetHeight);
+                var back_to_menu_width=parseInt(document.getElementById("back-to-menu").offsetWidth);
+                document.getElementById("ar-view-info").style.transform = "translateY("+parseInt(ar_view_info_height)+"px)";
+                document.getElementById("back-to-menu").style.transform = "translateX(-"+parseInt(back_to_menu_width)+"px)";
+
+                var acc = document.getElementsByClassName("accordion");
+                var i;
+
+                for (i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function() {
+                /* Toggle between hiding and showing the active panel */
+                        
+                        var panel = this.nextElementSibling;
+                        if (panel.style.display === "block" || panel.style.display==="" ) {
+                            panel.style.display = "none";
+                            this.getElementsByClassName('material-icons')[0].style.transform="rotate(0deg)";
+                        } else {
+                            panel.style.display = "block";
+                            this.getElementsByClassName('material-icons')[0].style.transform="rotate(-180deg)";
+                        }
+                    });
+                }
+
+                document.getElementById('screen_ui_popup_id').style.display="none";
+                console.log(devSignature, devSignatureStyle);
+            // });
+            
+        }
+
+
+        AFRAME.registerComponent('registerevents', {
+            init: function () {
+                const marker = this.el;
+
+                marker.addEventListener("markerFound", () => {
+                    console.log("Found!!");
+                    document.getElementById("menu_ui_popup_id").style.opacity="0";
+                    setTimeout(function(){
+                        document.getElementById("menu_ui_popup_id").style.display="none";
+                    },500);
+                    
+                    document.querySelector("#Model").emit('popup', null, false);
+                });
+
+                marker.addEventListener("markerLost", () => {
+                    var markerId = marker.id;
+                    console.log('Marker Lost: ', markerId);
+                    document.getElementById("menu_ui_popup_id").style.display="flex";
+                    setTimeout(function(){
+                        document.getElementById("menu_ui_popup_id").style.opacity="1";
+                    },400);
+                    
+                    document.querySelector("#Model").emit('popout', null, false);
+                }); 
+            },
+        });
+
+
+        function openMenu() {
+            // console.log("In Open");
+            nav_closed = false;
+            document.getElementById("menu-slider-id").style.transform = "unset";
+            document.getElementById("nav-header-id").style.transform = "unset";
+            document.getElementById("floating_shopping_cart_id").style.transform = "unset";
+
+            
+            var ar_view_info_height=parseInt(document.getElementById("ar-view-info").offsetHeight);
+            var back_to_menu_width=parseInt(document.getElementById("back-to-menu").offsetWidth);
+            
+            document.getElementById("ar-view-info").style.transform = "translateY("+parseInt(ar_view_info_height)+"px)";
+            document.getElementById("back-to-menu").style.transform = "translateX(-"+parseInt(back_to_menu_width)+"px)";
+            // document.getElementById("menu-bar").setAttribute('onClick', "closeMenu()");
+
+            //Popup
+            document.getElementById("menu_ui_popup_id").style.display="none";
+
+        }
+
+        function closeMenu() {
+            // console.log("In Close");
+            nav_closed = true;
+            var menubar_height=parseInt((document.getElementById("menu-bar").offsetHeight));
+            var nav_header_height=parseInt((document.getElementById("nav-header-id").offsetHeight));
+            var view_cart_width=parseInt((document.getElementById("floating_shopping_cart_id").offsetWidth));
+            
+            document.getElementById("menu-slider-id").style.transform = "translateY("+parseInt(window.innerHeight)+"px)";
+            document.getElementById("nav-header-id").style.transform = "translateY(-"+parseInt(nav_header_height)+"px)";
+            document.getElementById("floating_shopping_cart_id").style.transform = "translateX("+parseInt(view_cart_width)+"px)";
+            document.getElementById("ar-view-info").style.transform = "unset";
+            document.getElementById("back-to-menu").style.transform = "unset";
+            // document.getElementById("menu-bar").setAttribute('onClick', "openMenu()");
+
+            //Popup
+            document.getElementById("menu_ui_popup_id").style.display="flex";
+        }
+
+        function openNonArView(){
+            document.getElementById("ar-view-info").style.zIndex = 25;//10
+            // document.getElementById("back-to-menu").style.zIndex = "unset";
+            
+            // document.getElementById("back-to-menu").style.transform = "unset";
+
+            document.getElementById("cart_main_id").style.display = "unset";
+            document.getElementById("cart_header_id").style.height="65%";
+            document.getElementById("cart_header_id").style.display="flex";
+            setTimeout(()=>{
+                document.getElementById("ar-view-info").style.transform = "unset";
+                document.getElementById("cart_main_id").style.backgroundColor="rgba(0,0,0,0.5)";
+                document.getElementById("cart_header_id").setAttribute('onClick', "closeNonArView()");
+            },100);
+
+        }
+
+        function closeNonArView(){
+            
+            var ar_view_info_height=parseInt(document.getElementById("ar-view-info").offsetHeight);
+            document.getElementById("ar-view-info").style.transform = "translateY("+parseInt(ar_view_info_height)+"px)";
+
+
+            document.getElementById("cart_main_id").style.backgroundColor="rgba(0,0,0,0)";
+            document.getElementById("cart_header_id").style.display="none";
+            document.getElementById("cart_header_id").style.height="30%";
+            setTimeout(()=>{
+                document.getElementById("ar-view-info").style.zIndex = 10;
+                document.getElementById("cart_main_id").style.display = "none";
+                document.getElementById("cart_header_id").setAttribute('onClick', "closeCart()");
+            },550);
+
+        }
+
+        function openCart(){
+            tableName=getCookie('menuar-table-name');
+            updateCartItemsUI();
+            document.getElementById("cart_main_id").style.display = "unset";
+            
+            setTimeout(()=>{
+                document.getElementById("cart_header_id").style.display="flex";
+                document.getElementById("cart_main_id").style.backgroundColor="rgba(0,0,0,0.5)";
+                document.getElementById("cart_body_id").style.bottom = "0px";
+            },200);
+            
+
+        }
+
+        function closeCart(){
+            document.getElementById("cart_body_id").style.bottom = "-65%";
+            document.getElementById("cart_main_id").style.backgroundColor="rgba(0,0,0,0)";
+            document.getElementById("cart_header_id").style.display="none";
+            setTimeout(()=>{
+                document.getElementById("cart_main_id").style.display = "none";
+            },750);
+        }
+
+
+        function getCartItemsList(){
+            var cart_item_list=[];
+
+            // fetch(backend_link+'/get-prices', {
+            //     method: 'POST',
+            //     body: JSON.stringify(cart),
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     }
+            // })
+            // .then(response => response.json())
+            // .then(data => {
+                for (const menu_id in cart) {
+                    if (Object.hasOwnProperty.call(cart, menu_id)) {
+                        const element = cart[menu_id];
+                        for (group_name in data){
+                            items=data[group_name];
+                            items.forEach(item => {
+                                if(item._id===menu_id){
+                                    cart_item_list.push(item);
+                                }
+                            });
+                        }
+                    }
+                }
+                // cart_item_list=data;
+                // if(data.price_changed){
+                //     console.log("Prices maybe updated");
+                // }
+            // });
+            return cart_item_list;
+        }
+
+        function updateCartItemsUI(){
+            document.getElementById('cart_list_id').innerHTML="";
+            // cart_item_list=getCartItemsList();
+            var total_items=0;
+            var total_price=0;
+            // cart.forEach(item =>{
+            //     // console.log(item);
+
+            //     // try {
+            //     //     cart[item._id]['price']=item['price'];
+            //     // } catch (error) {
+            //     //     console.log("Failed to update price in Cart");
+            //     // }
+            // });
+
+            for (const menu_id in cart) {
+                if (Object.hasOwnProperty.call(cart, menu_id)) {
+                    if(menu_id==="total_amount"){
+                        continue;
+                    }
+                    var menu_item = cart[menu_id];
+                    try {
+                        total_items+=menu_item['qty'];
+                    } catch (error) {}
+                    
+                    try {
+                        total_price+=menu_item.price['value']*menu_item['qty'];
+                    } catch (error) {}
+                    document.getElementById('cart_list_id').appendChild(getCartUICardItem(menu_item));
+                }
+            }
+            
+            document.getElementById('cart_item_number_id').innerText=total_items+" item(s)";
+            if(total_items===0){
+                document.getElementById('cart_list_id').innerText="No items are added to the cart";
+                document.getElementById('cart_total_price_id').innerText='';
+                document.getElementById('place-order-button-id').className+=' disabled';
+            }
+            else{
+                document.getElementById('cart_total_price_id').innerText='Rs.'+total_price;
+                document.getElementById('place-order-button-id').className='order-text';
+                
+            }
+            cart['total_amount']=total_price;
+            // console.log("Cart: ",cart);
+        }
+
+        function view_ar(menu_item){
+            document.getElementById('ar-view-info-title').innerText=menu_item.name;
+            document.getElementById('ar-view-info-desc').innerText=menu_item.description;
+            document.getElementById('ar-view-info-price').innerText=menu_item.price.displayText;
+            document.getElementById('ar-view-preview-image').src=menu_item.preview_image;
+
+            ar_qty_btn=document.getElementById('ar-view-info-button').children[0];
+            ar_qty_btn.children[0].replaceWith(ar_qty_btn.children[0].cloneNode(true));
+            ar_qty_btn.children[1].replaceWith(ar_qty_btn.children[1].cloneNode(true));
+            ar_qty_btn.children[2].replaceWith(ar_qty_btn.children[2].cloneNode(true));
+
+            ar_qty_btn.children[0].addEventListener('click',function(){remove_quantity(menu_item);});
+            ar_qty_btn.children[1].addEventListener('click',function(){add_quantity(menu_item);});
+            ar_qty_btn.children[2].addEventListener('click',function(){add_quantity(menu_item);});
+            if(menu_item._id in cart){
+                ar_qty_btn.children[1].innerText=cart[menu_item._id]['qty'];
+                if(cart[menu_item._id]['qty']>0){
+                    ar_qty_btn.children[0].style.display="block";
+                }
+                else{
+                    ar_qty_btn.children[0].style.display="none";
+                    ar_qty_btn.children[1].innerText="Add";
+                }
+            }
+            else{
+                ar_qty_btn.children[1].innerText="Add";
+                ar_qty_btn.children[0].style.display="none";
+            }
+            
+            ar_qty_btn.id="qty_"+menu_item._id;
+
+            document.getElementById("Model").setAttribute('gltf-model',menu_item.model_link);
+            if(menu_item.food_category==="veg"){
+                document.getElementById('ar-view-info-veg-nonveg-img').src="/resources/images/veg_symbol.png";
+            }
+            else{
+                document.getElementById('ar-view-info-veg-nonveg-img').src="/resources/images/non_veg_symbol.png";
+            }
+
+            if(menu_item.ar_enabled){
+                setTimeout(closeMenu(),100);
+            }
+            else{
+                openNonArView();
+            }
+        }
+
+        function getMenuUICardItem(menu_item){
+            var root=document.createElement('div');
+            root.className="single-option";
+
+            //This is Menu Item UI
+
+            root.innerHTML=`
+            <div class="single-option-info-with-img" id="single-option-info-with-img-id">
+                <div><img class="menu-option-img" src="${menu_item.preview_image}"></div>
+                <div class="single-option-info">
+                    <div class="single-option-info-title">
+                        <div>${menu_item.name}</div>
+                        <img class="single-option-veg-nonveg-img" src="./resources/images/${menu_item.food_category}_symbol.png">
+                        <span class="material-icons">${menu_item.ar_enabled?'view_in_ar':''}</span>
+                    </div>
+                    <div class="single-option-info-price">${menu_item.price.displayText}</div>
+                </div>
+            </div>
+            <div class="single-option-add-to-cart">
+                <div class="qty_btn" id="qty_${menu_item._id}">
+                    <span class="material-icons qty_remove_icon" id="remove_btn_id">remove</span>
+                    <div class="qty_text" id="add_btn_txt_id">Add</div>
+                    <span class="material-icons" id="add_btn_id">add</span>
+                </div>
+            </div>`;
+            
+            root.querySelector('#single-option-info-with-img-id').addEventListener('click',function(){view_ar(menu_item);});
+            root.querySelector('#remove_btn_id').addEventListener('click',function(){remove_quantity(menu_item);});
+            root.querySelector('#add_btn_txt_id').addEventListener('click',function(){add_quantity(menu_item);});
+            root.querySelector('#add_btn_id').addEventListener('click',function(){add_quantity(menu_item);});
+            // console.log(root.innerHTML);
+            return root;
+        }
+
+        function getCartUICardItem(menu_item){
+
+            //This is Cart Item UI
+
+            var root=document.createElement('div');
+            root.className="single-option";
+            root.id="cart_item_"+menu_item._id;
+            var item_quantity=0;
+            if(menu_item._id in cart){
+                item_quantity=cart[menu_item._id]['qty'];
+            }
+            // console.log(item_quantity);
+
+            root.innerHTML=`
+            <div class="single-option-info-with-img" id="single-option-info-with-img-id">
+                <img class="menu-option-img" src="${menu_item.preview_image}">
+                <div class="cart-single-option-info">
+                    <div class="single-option-info-title">
+                        <div>${menu_item.name}</div>
+                        <img class="single-option-veg-nonveg-img" src="./resources/images/${menu_item.food_category}_symbol.png">
+                    </div>
+                    <div class="cart-single-option-category">${menu_item.section}</div>
+                    <div class="cart-single-option-add-to-cart">
+                        <div class="qty_btn" id="qty_${menu_item._id}">
+                            <span class="material-icons" id="remove_btn_id">remove</span>
+                            <div class="qty_text" id="add_btn_txt_id">${item_quantity>0?item_quantity:'Add'}</div>
+                            <span class="material-icons" id="add_btn_id">add</span>
+                        </div>
+                        <span class="material-symbols-outlined" id="delete_btn_id">delete</span>
+                    </div>
+                </div>
+            </div>
+            <div class="cart-single-option-price">${menu_item.price.displayText}</div>`;
+            
+            // root.querySelector('#single-option-info-with-img-id').addEventListener('click',function(){view_ar(menu_item);});
+            root.querySelector('#remove_btn_id').addEventListener('click',function(){remove_quantity(menu_item);});
+            root.querySelector('#add_btn_txt_id').addEventListener('click',function(){add_quantity(menu_item);});
+            root.querySelector('#add_btn_id').addEventListener('click',function(){add_quantity(menu_item);});
+            root.querySelector('#delete_btn_id').addEventListener('click',function(){remove_item_from_cart(menu_item);});
+            // console.log(root.innerHTML);
+            // document.getElementById('cart_list_id').appendChild(root);
+            return root;
+        }
+
+        function getAccordionGroupItem(name){
+            var root=document.createElement('div');
+            
+            root.innerHTML=`
+            <div class="group-text accordion">
+                <div></div>
+                <div>${name}</div>
+                <span class="material-icons">expand_more</span>
+            </div>
+            <div class="panel" id="panel-id"></div>
+            `;
+            data[name].forEach(menu_item => {
+                root.querySelector('#panel-id').appendChild(getMenuUICardItem(menu_item));
+            });
+            
+            // console.log(root.innerHTML);
+            //document.getElementById('menu-list-id').appendChild(root);
+            return root;
+        }
+
+        function add_quantity(item){
+            if(item._id in cart){
+                cart[item._id]['qty']=cart[item._id]['qty']+1;
+            }
+            else{
+                cart[item._id]=item;
+                cart[item._id]["qty"]=1;
+            }
+
+            update_quantity_ui(item._id,cart[item._id]['qty']);
+        }
+
+        function remove_quantity(item){
+            if(item._id in cart){
+                if(cart[item._id]['qty']==0){
+                    return;
+                }
+                cart[item._id]['qty']=cart[item._id]['qty']-1;
+            }
+            else{
+                return;
+            }
+
+            if(cart[item._id]['qty']==0){
+                delete cart[item._id];
+                update_quantity_ui(item._id,0);
+            }
+            else{
+                update_quantity_ui(item._id,cart[item._id]['qty']);
+            }
+            
+        }
+
+        function remove_item_from_cart(item){
+            if(item._id in cart){
+                if(cart[item._id]['qty']==0){
+                    return;
+                }
+                delete cart[item._id];
+            }
+            else{
+                return;
+            }
+            // console.log(cart);
+
+            update_quantity_ui(item._id,0);
+        }
+
+        function update_quantity_ui(id,new_qty){
+            var qty_uis=document.querySelectorAll("#qty_"+id);
+            for (let i = 0; i < qty_uis.length; i++) {
+                const qty_ui = qty_uis[i];
+                if(new_qty==0){
+                    qty_ui.children[0].style.display="none";
+                    qty_ui.children[1].innerText="Add";
+                }
+                else if(new_qty==1){
+                    qty_ui.children[0].style.display='block';
+                    qty_ui.children[1].innerText=new_qty;
+                }
+                else{
+                    qty_ui.children[1].innerText=new_qty;
+                }   
+            }
+
+            var cart_qty_ui=document.querySelector("#cart_item_"+id);
+            if(cart_qty_ui && new_qty==0){
+                cart_qty_ui.style.display="none";
+            }
+
+            var total_items=0;
+            var total_price=0;
+            for (const menu_id in cart) {
+                if (Object.hasOwnProperty.call(cart, menu_id)) {
+                    if(menu_id==="total_amount"){
+                        continue;
+                    }
+                    const menu_item = cart[menu_id];
+                    // console.log(menu_item);
+                    try {
+                        total_items+=menu_item['qty'];
+                    } catch (error) {}
+                    
+                    try {
+                        total_price+=menu_item.price['value']*menu_item['qty'];
+                    } catch (error) {}
+                    
+                }
+            }
+            cart['total_amount']=total_price;
+            document.getElementById('cart_item_number_id').innerText=total_items+" item(s)";
+            document.getElementById('cart_total_price_id').innerText='Rs.'+total_price;
+            if(total_items===0){
+                document.getElementById('cart_list_id').innerText="No items are added to the cart";
+                document.getElementById('place-order-button-id').className='order-text disabled';
+            }
+            else{
+                document.getElementById('place-order-button-id').className='order-text';
+            }
+        }
+
+        function placeOrder(){
+            document.getElementById('screen_ui_popup_id').style.display="flex";
+            request={};
+            request['ordered_table']=tableName;
+            request['total_amount']=cart['total_amount'];
+            request['ordered_items']=[]
+            for (const item in cart) {
+                if (Object.hasOwnProperty.call(cart, item)) {
+                    if(item==="total_amount"){
+                        continue;
+                    }
+                    var order_item={};
+                    const element = cart[item];
+                    order_item["item_id"]=item;
+                    order_item["quantity"]=cart[item]['qty'];
+                    request['ordered_items'].push(order_item);
+                }
+            }
+            console.log("Place Order Request: ",request);
+            // fetch(backend_link+'/place-order', {
+            //     method: 'POST',
+            //     body: JSON.stringify(request),
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     }
+            // })
+            // .then(response => response.json())
+            // .then(data => {
+            //     if('id' in data){
+                    var order_id="6399ed7a7437846162c0e0f0";
+                    var simpleRestaurantName=restaurantName.replace(" ","-");
+                    simpleRestaurantName=simpleRestaurantName.toLowerCase();
+                    var orderHistory=getCookie('restaurantar-order-history-'+simpleRestaurantName);
+                    if(orderHistory==""){
+                        orderHistory={};
+                        orderHistory[order_id]={
+                            'cart':cart,
+                            'order_date': new Date().toLocaleString(),
+                            'order_id': order_id,
+                            'total_amount':cart['total_amount']
+                        };
+                    }
+                    else{
+                        orderHistory=JSON.parse(orderHistory);
+                        orderHistory[order_id]={
+                            'cart':cart,
+                            'order_date': new Date().toLocaleString(),
+                            'order_id': order_id,
+                            'total_amount':cart['total_amount']
+                        };
+                    }
+                    setCookie('restaurantar-order-history-'+simpleRestaurantName,JSON.stringify(orderHistory),300);
+
+                    for (const menu_id in cart) {
+                        if (Object.hasOwnProperty.call(cart, menu_id)) {
+                            if(menu_id!="total_amount"){
+                                console.log(menu_id);
+                                remove_item_from_cart(cart[menu_id]);
+                            } 
+                        }
+                    }
+                    document.getElementById('screen_ui_popup_id').style.display="none";
+                    document.getElementById('popup_img_id').src="./resources/images/success_icon.png";
+                    document.getElementById('menu_ui_popup_id').style.display="flex";
+                    document.getElementById('menu_ui_popup_id').style.zIndex=30;
+                    document.getElementById('popup_text_id').innerText="Order Placed";
+                    setTimeout(function(){
+                        document.getElementById('menu_ui_popup_id').style.display="none";
+                        document.getElementById('menu_ui_popup_id').style.zIndex=10;
+                        document.getElementById('popup_img_id').src="./resources/images/qrcode_scan.gif";
+                        document.getElementById('popup_text_id').innerText="Scan QR code to continue";
+                        window.open('orders.html','_blank');
+                    },4000);
+                    
+                // }
+                // else{
+                //     document.getElementById('screen_ui_popup_id').style.display="none";
+                //     document.getElementById('popup_img_id').src="./resources/images/error_icon.png";
+                //     document.getElementById('menu_ui_popup_id').style.display="flex";
+                //     document.getElementById('menu_ui_popup_id').style.zIndex=30;
+                //     document.getElementById('popup_text_id').innerText="Place Order Failed";
+                //     setTimeout(function(){
+                //         document.getElementById('menu_ui_popup_id').style.display="none";
+                //         document.getElementById('menu_ui_popup_id').style.zIndex=10;
+                //         document.getElementById('popup_img_id').src="./resources/images/qrcode_scan.gif";
+                //         document.getElementById('popup_text_id').innerText="Scan QR code to continue";
+                //     },5000);
+                // }
+
+            // });
+        }
+    </script>
+
+</head>
+
+<body style="overflow: hidden;">
+    <!-- Part 1: AR View -->
+    <div id="back-to-menu" onclick="openMenu()">
+        <span class="material-icons">arrow_back</span>
+        <div>Menu</div>
+    </div>
+
+    <div id="ar-view-info">
+        <div id="ar-view-info-card">
+            <div id="ar-view-info-text">
+                <div>
+                    <div id="ar-view-info-title">Veg. Pizza</div>
+                    <img id="ar-view-info-veg-nonveg-img" src="./resources/images/veg_symbol.png">
+                    <div id="ar-view-info-desc">Chunky paneer with crisp capsicum and spicy red pepper - quite a mouthful!</div>
+                </div>
+                <div id="ar-view-info-price-button">
+                    <div id="ar-view-info-price">Rs.150</div>
+                    <div id="ar-view-info-button">
+                        <div class="qty_btn">
+                            <span class="material-icons qty_remove_icon">remove</span>
+                            <div class="qty_text">Add</div>
+                            <span class="material-icons">add</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <img id="ar-view-preview-image" src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8NHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=60">
+        </div>
+    </div>
+
+    <a-scene vr-mode-ui="enabled: false" color-space="sRGB" renderer="gammaOutput: true"
+    embedded arjs='debugUIEnabled: false; sourceType: webcam; patternRatio: 0.85; trackingMethod: best;'>
+          <a-entity id='userCamera' camera>
+              <a-marker registerevents preset='custom' type='pattern' url="resources\markers\pattern-test_qr.patt" id="M1">
+                  <a-entity rotation="0 0 0" gltf-model="" id="Model"
+                  scale='0 0 0' animation="property: rotation; to:0 360 0; dur: 10000; easing: linear; loop: true"
+                  animation__2="property: scale; to:0.5 0.5 0.5; dur: 1000 easing: ease-elastic; startEvents: popup;"
+                  animation__3="property: scale; to:0 0 0; dur: 1000 easing: easeInElastic; startEvents: popout;">
+                    <a-entity gltf-model="resources\models\plate.glb"></a-entity>
+                </a-entity>
+              </a-marker>
+          </a-entity>
+      </a-scene>
+
+    <!-- Part 2: Menu Card -->
+    <!-- Header -->
+    <div class="nav-header" id="nav-header-id">
+        <img src="./resources/images/logo.png" id="nav-header-img-id">
+        <!-- <span id="fullscreen_btn_id" onclick="openFullscreen()" class="material-icons" style="right: 10px; position: fixed; color: black; background: white; border-radius: 50%; padding: 2px;">fullscreen</span> -->
+    </div>
+
+    <!-- Menu -->
+    <div class="menu-slider" id="menu-slider-id">
+        <div id="menu-bar">
+            <div style="font-weight: bold; font-size: xx-large;">Menu</div>
+        </div>
+        <div class="menu-list" id="menu-list-id"></div>
+        <div style="height: 200px;"></div>
+    </div>
+
+    <!-- Part3: Cart -->
+    <div class="floating_shopping_cart" id="floating_shopping_cart_id">
+        <div class="place_order" id="place_order_id" onclick="openCart()">
+            <span class="material-icons">shopping_cart</span>
+            <div class="place_order_text">View Cart</div>
+        </div>
+    </div>
+
+    <div class="cart_main" id="cart_main_id">
+        <div class="cart_header" id="cart_header_id" onclick="closeCart()">
+            <div class="close_cart_icon"><span class="material-icons">close</span></div>
+        </div>
+        <div class="cart_body" id="cart_body_id">
+            <div>
+                <div style="height: 45px; padding: 10px; margin-top: 5px; margin-left: 5px; font-weight: bold; font-size: xx-large;">Cart</div>
+                <div class="cart_list" id="cart_list_id">
+
+                </div>
+            </div>
+            <div class="order-button">
+                <div class="order-summary">
+                    <div>
+                        <div style="font-size: x-large; white-space: nowrap;">Total Price</div>
+                        <div style="text-align: end;" id="cart_item_number_id">1 items</div>
+                    </div>
+                    <div style="font-size: xx-large;margin-left: 20px;" id="cart_total_price_id">Rs.200</div>
+                </div>
+                <div class="order-text" id="place-order-button-id" onclick="placeOrder()">
+                    <div style="width: max-content; max-height: fit-content; white-space: nowrap;">Place Order</div>
+                    <div><span class="material-icons">arrow_forward</span></div>
+                </div>
+                <div style="height: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Part 4: UI popup -->
+    <div class="menu_ui_popup" id="menu_ui_popup_id">
+        <div class="menu_popup_content">
+            <div style="width: 200px; overflow: hidden; display: flex; justify-content: center; height: 200px;align-items: center;"><img class="popup_img" id="popup_img_id" src="./resources/images/qrcode_scan.gif"></div>
+            <div id="popup_text_id">Scan QR code to continue</div>
+        </div>
+    </div>
+
+    <div class="screen_ui_popup" id="screen_ui_popup_id">
+        <div class="screen_popup_content">
+            <div style="overflow: hidden; display: flex; justify-content: center;align-items: center;">
+                <img class="screen_popup_img" src="./resources/images/bar_loader.gif">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

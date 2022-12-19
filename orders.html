@@ -1,0 +1,265 @@
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+        <script src="./constants.js"></script>
+
+        <title>AR Menu</title>
+        <link rel="icon" href="./resources/images/logo.png">
+
+        <style>
+            body{
+                font-family: "Roboto", sans-serif;
+                margin: 0px;
+            }
+
+            .single-option{
+                display: flex;
+                justify-content: space-between;
+                /* height: 75px; */
+
+                margin-top: 15px;
+                padding-bottom: 10px;
+                padding: 30px;
+            }
+
+            .single-option-info-with-img{
+                display: flex;
+                transition: 0.4s;
+            }
+
+            .menu-option-img{
+                height: 200px;
+                width: 200px;
+                border-radius: 20%;
+
+                object-fit: cover;
+
+            }
+
+            .single-option-info{
+                padding-left: 20px;
+                padding-right: 10px;
+
+                justify-content: center;
+                display: flex;
+                flex-direction: column;
+            }
+            .single-option-info-title{
+                display: flex; 
+                align-items: center;
+                font-size: large;
+
+                overflow-wrap: anywhere;
+                max-width: 50vw;
+
+                font-size: 45px;
+            }
+
+            .single-option-info-price{
+                padding-top: 10px;
+            }
+
+            .single-option-veg-nonveg-img{
+                height: 25px;
+                width: 25px;
+
+                padding-left: 5px;
+            }
+
+            .single-option-add-to-cart{
+                display: inline-flex;
+                flex-direction: column;
+                justify-content: center;
+
+            }
+
+            .single-option-add-to-cart > div{
+                display: flex;
+                align-items: center;
+                justify-content: space-evenly;
+                font-size: medium;
+
+                border: 2px solid green;
+                margin: 15px;
+                padding: 5px;
+                margin-left: 0px;
+                color: green;
+                border-radius: 10px;
+
+                width: fit-content;
+                transition: 0.5s;
+                font-size: 35px;
+            }
+
+            .single-option-add-to-cart span.material-icons {
+                font-size: 20px;
+            }
+
+            .single-option-price{
+                font-size: 50px;
+                text-align: center;
+                display: flex;
+                align-items: center;
+            }
+
+            .order_list{
+                margin-top: 50px;
+            }
+
+            .order-title{
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin: 30px;
+                padding-top: 30px;
+                font-size: 50px;
+                font-weight: bold;
+            }
+            .order-number{
+                font-weight: initial;
+                margin-left: 10px;
+            }
+            .order-summary{
+                display: flex;
+                justify-content: space-between;
+                font-size: 40px;
+                margin-left: 30px;
+                margin-right: 30px;
+                padding-bottom: 20px;
+
+                border-bottom: 1px solid gray;
+            }
+            .order-date{
+                color: gray;
+            }
+            .order-amount{
+                font-weight: bold;
+                font-size: 50px;
+            }
+            .restaurant-icon{
+                font-size: 50px;
+                color: green;
+                margin-right: 10px;
+            }
+            .date-indicator{
+                border-radius: 50%;
+                border: 10px solid gray;
+                height: 50px;
+                width: 50px;
+
+                margin-right: 20px;
+            }
+
+        </style>
+
+        <script>
+            function getCookie(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            window.onload = function(){
+                const queryString = window.location.href.split("/");
+                console.log("Query: ",queryString);
+
+                var simpleRestaurantName=restaurantName.replace(" ","-");
+                simpleRestaurantName=simpleRestaurantName.toLowerCase();
+                var orderHistory=getCookie('restaurantar-order-history-'+simpleRestaurantName);
+                orderHistory=JSON.parse(orderHistory);
+                document.getElementById('order_list_id').innerHTML="";
+                if(orderHistory!=""){
+                    for (const order_id in orderHistory) {
+                        if (Object.hasOwnProperty.call(orderHistory, order_id)) {
+                            const order = orderHistory[order_id];
+                            var orderTitle=getOrderTitle(order['order_id']);
+                            document.getElementById('order_list_id').appendChild(orderTitle);
+
+                            var orderOrderSummary=getOrderSummary(order);
+                            document.getElementById('order_list_id').appendChild(orderOrderSummary);
+
+                            console.log("Order: ",order);
+                            for (const item in order["cart"]) {
+                                if (Object.hasOwnProperty.call(order["cart"], item)) {
+                                    if(item==="total_amount"){
+                                        continue;
+                                    }
+                                    const menuItem= order["cart"][item];
+                                    var orderItem=getOrderItem(order['cart'][item]);
+                                    document.getElementById('order_list_id').appendChild(orderItem);
+                                }
+                            }
+                            
+                           
+                            
+                        }
+                    }
+                }
+            }
+
+            function getOrderTitle(order_id){
+                var orderTitle=document.createElement('div');
+                orderTitle.className="order-title";
+                orderTitle.innerHTML=`
+                <div class="material-icons restaurant-icon">restaurant</div>
+                <div>Order ID:  </div>
+                <div class="order-number">#${order_id}</div>                
+                `;
+                return orderTitle;
+            }
+
+            function getOrderSummary(order_info){
+                var orderSummary=document.createElement('div');
+                orderSummary.className="order-summary";
+                orderSummary.innerHTML=`
+                <div class="order-date">${order_info['order_date']}</div>
+                <div class="order-amount">Rs.${order_info['total_amount']}</div>
+                `;
+                return orderSummary;
+            }
+
+            function getOrderItem(order_item){
+                var orderItem=document.createElement('div');
+                orderItem.className="single-option";
+                orderItem.innerHTML=`
+                <div class="single-option-info-with-img">
+                    <div class="single-option-info">
+                        <div class="single-option-info-title">
+                            <div>${order_item['name']}</div>
+                            <img class="single-option-veg-nonveg-img" src="./resources/images/${order_item.food_category}_symbol.png">
+                        </div>
+                        <div class="single-option-add-to-cart">
+                            <div>Quantity: ${order_item['qty']}</div>
+                        </div>
+                    </div>
+                </div>  
+                <div class="single-option-price">Rs.${order_item['price']['value']}</div>
+                `;
+                return orderItem;
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            <div style="width: 100%; height: 10%; display: flex; justify-content: center; background-color: black;">
+                <img style="padding: 20px;" src="./resources/images/logo.png">
+            </div>
+            <div style="padding: 10px; margin-top: 25px; margin-bottom:25px ; margin-left: 10px; font-weight: bold; font-size: 70px;">Order History</div>
+            <div class="order_list" id="order_list_id">
+                <div style="padding: 10px; margin-top: 25px; margin-bottom:25px ; margin-left: 15px;font-style: italic; color: gray; font-size: 40px;">Nothing ordered yet</div>
+            </div>
+            <div style="height:150px"></div>
+        </div>
+    </body>
+</html>

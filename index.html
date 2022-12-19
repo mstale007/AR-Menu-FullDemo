@@ -1,0 +1,84 @@
+<html>
+<meta name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no," />
+
+<head>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+
+  <title>AR Menu</title>
+  <link rel="icon" href="./resources/images/logo.png">
+  <style>
+    .screen-rotate-popup {
+      font-family: 'Roboto', sans-serif;
+
+      z-index: 10;
+      width: 100%;
+      height: 90%;
+      background-color: black;
+      color: white;
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      left: 0;
+      bottom: 0;
+    }
+  </style>
+
+  <script>
+
+    function setCookie(cname, cvalue, exdays) {
+      const d = new Date();
+      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+      let expires = "expires=" + d.toUTCString();
+      document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    window.onload = function () {
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      var tableName = urlParams.get('table');
+      if(tableName===null){
+        tableName='table1';
+      }
+
+      setCookie('menuar-table-name', tableName, 10);
+
+      console.log(window.screen.height, window.screen.width);
+      if (window.screen.height < window.screen.width) {
+        document.getElementsByClassName("screen-rotate-popup")[0].style.display = 'flex';
+      }
+      else {
+        document.getElementsByClassName("screen-rotate-popup")[0].style.display = 'none';
+      }
+
+      window.addEventListener("orientationchange", function () {
+        // console.log("Orientation: ",window.orientation);
+        if (window.orientation == 90 || window.orientation == -90) {
+          document.getElementsByClassName("screen-rotate-popup")[0].style.display = 'flex';
+        }
+        else {
+          document.getElementsByClassName("screen-rotate-popup")[0].style.display = 'none';
+        }
+      }, false);
+    }
+
+  </script>
+</head>
+
+<body>
+  <div class="screen-rotate-popup" style="display: none;">
+    <span class="material-icons" style="color: white; font-size: 48px;">
+      screen_lock_rotation</span>
+    <p>Use a Mobile device.</p>
+    <p>Keep the screen in portrait mode.</p>
+  </div>
+  <iframe src="hiro_marker.html" id="ar_iframe"
+    style="position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden;">
+    Your browser doesn't support iframes
+  </iframe>
+</body>
+
+</html>
