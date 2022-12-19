@@ -364,10 +364,10 @@
 
             document.getElementById("Model").setAttribute('gltf-model',menu_item.model_link);
             if(menu_item.food_category==="veg"){
-                document.getElementById('ar-view-info-veg-nonveg-img').src="/resources/images/veg_symbol.png";
+                document.getElementById('ar-view-info-veg-nonveg-img').src="resources/images/veg_symbol.png";
             }
             else{
-                document.getElementById('ar-view-info-veg-nonveg-img').src="/resources/images/non_veg_symbol.png";
+                document.getElementById('ar-view-info-veg-nonveg-img').src="resources/images/non_veg_symbol.png";
             }
 
             if(menu_item.ar_enabled){
@@ -390,7 +390,7 @@
                 <div class="single-option-info">
                     <div class="single-option-info-title">
                         <div>${menu_item.name}</div>
-                        <img class="single-option-veg-nonveg-img" src="./resources/images/${menu_item.food_category}_symbol.png">
+                        <img class="single-option-veg-nonveg-img" src="resources/images/${menu_item.food_category}_symbol.png">
                         <span class="material-icons">${menu_item.ar_enabled?'view_in_ar':''}</span>
                     </div>
                     <div class="single-option-info-price">${menu_item.price.displayText}</div>
@@ -431,7 +431,7 @@
                 <div class="cart-single-option-info">
                     <div class="single-option-info-title">
                         <div>${menu_item.name}</div>
-                        <img class="single-option-veg-nonveg-img" src="./resources/images/${menu_item.food_category}_symbol.png">
+                        <img class="single-option-veg-nonveg-img" src="resources/images/${menu_item.food_category}_symbol.png">
                     </div>
                     <div class="cart-single-option-category">${menu_item.section}</div>
                     <div class="cart-single-option-add-to-cart">
@@ -684,7 +684,7 @@
             <div id="ar-view-info-text">
                 <div>
                     <div id="ar-view-info-title">Veg. Pizza</div>
-                    <img id="ar-view-info-veg-nonveg-img" src="./resources/images/veg_symbol.png">
+                    <img id="ar-view-info-veg-nonveg-img" src="resources/images/veg_symbol.png">
                     <div id="ar-view-info-desc">Chunky paneer with crisp capsicum and spicy red pepper - quite a mouthful!</div>
                 </div>
                 <div id="ar-view-info-price-button">
@@ -706,12 +706,12 @@
     embedded arjs='debugUIEnabled: false; sourceType: webcam; patternRatio: 0.85; trackingMethod: best;'>
           <a-entity id='userCamera' camera>
               <a-marker registerevents preset='custom' type='pattern' url="resources\markers\pattern-full_demo_qr.patt" id="M1">
-                  <a-entity rotation="0 0 0" gltf-model="" id="Model"
-                  scale='0 0 0' animation="property: rotation; to:0 360 0; dur: 10000; easing: linear; loop: true"
-                  animation__2="property: scale; to:0.5 0.5 0.5; dur: 1000 easing: ease-elastic; startEvents: popup;"
-                  animation__3="property: scale; to:0 0 0; dur: 1000 easing: easeInElastic; startEvents: popout;">
-                    <a-entity gltf-model="resources\models\plate.glb"></a-entity>
-                </a-entity>
+                <a-entity rotation="0 0 0" gltf-model="resources\models\plate.glb" id="Model"
+                scale='0 0 0' animation="property: rotation; to:0 360 0; dur: 10000; easing: linear; loop: true"
+                animation__2="property: scale; to:1 1 1; dur: 1000 easing: ease-elastic; startEvents: popup;"
+                animation__3="property: scale; to:0 0 0; dur: 1000 easing: easeInElastic; startEvents: popout;">
+                <a-entity rotation="0 0 0" position="0 -0.1 0" gltf-model="resources\models\plate.glb" id="Model2" scale='1 1 1'></a-entity>
+              </a-entity>
               </a-marker>
           </a-entity>
       </a-scene>
